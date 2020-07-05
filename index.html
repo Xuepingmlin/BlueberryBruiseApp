@@ -20,16 +20,17 @@
       
       <div style="padding: 10px;">
         <div id="capimg" style="position:relative;display:inline-block;min-width:600px;vertical-align:top;">
-          <canvas id="canvasimage" style="z-index:1; position:absolute; left:0px; top:0px;"></canvas>
-          <!-- <canvas id="canvassegments" style="z-index:2; position:absolute; left:120px; top:0px;"></canvas> -->
-          <canvas id="canvascrop" style="z-index:3; position:absolute; left:120px; top:0px;"></canvas>
-          <canvas id="individualBerry" style="z-index:3; position:absolute; left:0px; top:120px;"></canvas>
-          <canvas id="bruiseResult" width='300' height='1000' style="z-index:auto; position:absolute;left:0px; top:120px;"></canvas>
-          <!-- <canvas id="result1" width='1000' height='1000' style="z-index:auto; position:absolute;left:0px; top:120px;border:1px solid #000000;"></canvas> -->
+          <canvas id="canvasimage" width='112' height='112' style="z-index:1; position:static; left:0px; top:0px;"></canvas>
+          <!-- <canvas id="canvassegments" style="z-index:2; position:relative; left:120px; top:0px;border:1px solid #000000;"></canvas> -->
+          <canvas id="canvascrop" width='112' height='112' style="z-index:1; position:static; left:0px; top:0px;"></canvas>
+          <!-- <canvas id="individualBerry" style="z-index:3; position:absolute; left:0px; top:120px;"></canvas> -->
+          <canvas id="bruiseResult" width='231' height='620' style="z-index:1; position: absolute;left:0px; top:120px;"></canvas>
+          <canvas id="origin" width='560' height='800' style="z-index:1; position: absolute;left:250px; top:0px;"></canvas>
+          <canvas id="segmentation" width='560' height='800' style="z-index:2; position: absolute;left:250px; top:0px;"></canvas>
           <!-- <canvas id="result2" style="z-index:3; position:absolute; left:0px; top:240px;"></canvas> -->
           <!-- <canvas id="cropBerry" style="z-index:3; position:absolute; left:0px; top:240;"></canvas> -->
         </div>
-        <div id="message" style="position:relative;display:inline-block;"></div>
+        <div id="message" style="position: absolute;display:inline-block;left:1000px; top:200px;"></div>
       </div>
 
       

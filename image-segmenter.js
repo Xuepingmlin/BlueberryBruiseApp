@@ -65,6 +65,17 @@ originalImage=new Image()
  * @param {DOM Node} input - the image file upload element
  */
 window.loadImage = function (input) {
+  let canvas_1= document.getElementById("canvasimage")
+  canvas_1.getContext('2d').clearRect(0,0,canvas_1.width,canvas_1.height);
+  let canvas_2= document.getElementById("canvascrop")
+  canvas_2.getContext('2d').clearRect(0,0,canvas_2.width,canvas_2.height);
+  let canvas_3 =document.getElementById("bruiseResult")
+  canvas_3.getContext('2d').clearRect(0,0,canvas_3.width,canvas_3.height);
+  let canvas_4 =document.getElementById("origin")
+  canvas_4.getContext('2d').clearRect(0,0,canvas_4.width,canvas_4.height);
+  let canvas_5 =document.getElementById("segmentation")
+  canvas_5.getContext('2d').clearRect(0,0,canvas_5.width,canvas_5.height);
+
   if (input.files && input.files[0]) {
     console.log('input:'+input.files[0])
     // disableElements('input:'+input.files )
@@ -99,11 +110,17 @@ window.loadImage = function (input) {
         imageElement.height = targetSize.h
 
         let canvas = document.getElementById('canvasimage')
-        canvas.width = targetSize.w/2
-        canvas.height = targetSize.h/2
-        canvas
-          .getContext('2d')
-          .drawImage(imageElement, 0, 0, canvas.width, canvas.height)
+        // canvas.width = targetSize.w/2
+        // canvas.height = targetSize.h/2
+        let ctx=canvas.getContext('2d')
+        // ctx.font='15px Arial'
+        // ctx.fillText('resized original image:',0,15);
+        ctx.drawImage(imageElement, 0, 0,targetSize.w/2,targetSize.h/2)
+
+        // canvas
+        //   .getContext('2d')
+        //   .fillText('resized original image',0,0)
+        //   .drawImage(imageElement, 19, 38,targetSize.w/2,targetSize.h/2)
 
         message(`resized from ${origSize.w} x ${origSize.h} to ${targetSize.w} x ${targetSize.h}`)
       }
@@ -136,6 +153,7 @@ window.runModel = async function () {
     message('no image available', true)
   }
 
+  individualBerry=[];
   let Ratio1 = imageSize / originalImage.width/2
   let Ratio2 = imageSize / originalImage.height /2
   let src_mask = cv.matFromImageData(segmentData);
@@ -149,18 +167,19 @@ window.runModel = async function () {
   for (let i = 0; i < contours.size(); i++) {
     let cnt = contours.get(i);
     let rect = cv.boundingRect(cnt);
+    console.log('rect:'+rect.x+'*'+ rect.y+'*'+rect.width+'*'+rect.height)
     let contoursColor = new cv.Scalar(255, 255, 255);
     let rectangleColor = new cv.Scalar(255, 0, 0);
     cv.drawContours(dst_mask, contours, i, contoursColor, 1, cv.LINE_8, hierarchy, 100);
     let point1 = new cv.Point(rect.x, rect.y);
     let point2 = new cv.Point(rect.x + rect.width, rect.y + rect.height);
-    cv.rectangle(dst_mask, point1, point2, rectangleColor, 1, cv.LINE_AA, 0)
+    cv.rectangle(dst_mask, point1, point2, rectangleColor, 0.1, cv.LINE_AA, 0)
 
     let rect_resize =Object.assign({},rect);
-    rect_resize.x=rect.x*0.98/Ratio1;
-    rect_resize.y=rect.y*0.98/Ratio2;
-    rect_resize.width=rect.width*1.1/Ratio1;
-    rect_resize.height=rect.height*1.15/Ratio2;
+    rect_resize.x=(rect.x-1)/Ratio1;
+    rect_resize.y=(rect.y-1)/Ratio2;
+    rect_resize.width=(rect.width+1)/Ratio1;
+    rect_resize.height=(rect.height+1)/Ratio2;
     Rect.push(rect_resize);
     }
   cv.imshow('canvascrop', dst_mask);
@@ -186,62 +205,98 @@ window.runModel = async function () {
 
 
 
-//crop individual berries
-// individualBerry=[];
-// window.cropImage = function () {
-//   let Ratio1 = imageSize / originalImage.width/2
-//   let Ratio2 = imageSize / originalImage.height /2
+//berry segmentaion for individual berry
+var bruise_ratio=[]
+window.segmentBerry = async function () {
+  let bruiseResult_canvas=document.getElementById('bruiseResult');
+  let bruiseResult_ctx=bruiseResult_canvas.getContext('2d');
+  bruiseResult_ctx.font = "20px Times New Roman";
+  // display bruise result
+  for (var i=0;i<individualBerry.length;i=i+1){
+    let img=CreatImageData(individualBerry[i],224,224);
+    let inputImage = preprocessInput(img);
+    const output_berry = berrySeg_model.predict(inputImage);
+    count_berry=CountPixel(output_berry);
+    const output_bruise = bruiseSeg_model.predict(inputImage)
+    count_bruise=CountPixel(output_bruise);
+    if(count_bruise==0){
+      ratio=0;
+    } else{
+      ratio=count_bruise/count_berry;
+    };
+    bruise_ratio.push(ratio)
+    console.log('i='+i+'  ratio:'+ratio)
+    bruiseResult_ctx.fillText('id='+(i)+'  bruiseRatio='+ratio.toFixed(2) , 0, i*25);
 
-//   // let canvas_mask = document.getElementById('canvassegments')
-//   // let ctx_mask = canvas_mask.getContext("2d");
-//   // let imgData_mask = ctx_mask.getImageData(0, 0, canvas_mask.width, canvas_mask.height);
-//   // let src_mask = cv.matFromImageData(imgData_mask);
-//   let src_mask = cv.matFromImageData(segmentData);
-//   let dst_mask= new cv.Mat.zeros(src_mask.rows,src_mask.cols, cv.CV_8UC3);
+    var width=individualBerry[i].cols;
+    var height= individualBerry[i].rows;
+    let Ori_berry=CreatImageData(individualBerry[i],112*width/height,112);
+    let brusie_imageData= await processOutput(output_bruise)
+    let mat_bruise = cv.matFromImageData(brusie_imageData);
+    let Ori_bruise_mask=CreatImageData(mat_bruise,112*width/height,112);
+    if(i<6){
+      drawImage('origin',Ori_berry,(i-1)*112,0)
+      drawImage('segmentation',Ori_bruise_mask,(i-1)*112,0)
+    } else if(i<11){
+      drawImage('origin',Ori_berry,(i-6)*112,120)
+      drawImage('segmentation',Ori_bruise_mask,(i-6)*112,120)
+    } else if (i<16){
+      drawImage('origin',Ori_berry,(i-11)*112,240)
+      drawImage('segmentation',Ori_bruise_mask,(i-11)*112,240)
+    } else if (i<21){
+      drawImage('origin',Ori_berry,(i-16)*112,360)
+      drawImage('segmentation',Ori_bruise_mask,(i-16)*112,360)
+    } else {
+      drawImage('origin',Ori_berry,(i-21)*112,480)
+      drawImage('segmentation',Ori_bruise_mask,(i-21)*112,480)
+    };
+    
+  }
+ 
 
-//   cv.cvtColor(src_mask, src_mask, cv.COLOR_RGBA2GRAY, 0);
-//   cv.threshold(src_mask, src_mask, 20, 100, cv.THRESH_BINARY);
-//   let contours = new cv.MatVector();
-//   let hierarchy = new cv.Mat();
-//   cv.findContours(src_mask, contours, hierarchy, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE);
-//   Rect=[];
-//   for (let i = 0; i < contours.size(); i++) {
-//     let cnt = contours.get(i);
-//     let rect = cv.boundingRect(cnt);
-//     let contoursColor = new cv.Scalar(255, 255, 255);
-//     let rectangleColor = new cv.Scalar(255, 0, 0);
-//     cv.drawContours(dst_mask, contours, i, contoursColor, 1, cv.LINE_8, hierarchy, 100);
-//     let point1 = new cv.Point(rect.x, rect.y);
-//     let point2 = new cv.Point(rect.x + rect.width, rect.y + rect.height);
-//     cv.rectangle(dst_mask, point1, point2, rectangleColor, 1, cv.LINE_AA, 0)
+  // display segmentation result 
 
-//     let rect_resize =Object.assign({},rect);
-//     rect_resize.x=rect.x*0.98/Ratio1;
-//     rect_resize.y=rect.y*0.98/Ratio2;
-//     rect_resize.width=rect.width*1.1/Ratio1;
-//     rect_resize.height=rect.height*1.15/Ratio2;
-//     Rect.push(rect_resize);
-//     }
-//   cv.imshow('canvascrop', dst_mask);
-//   src_mask.delete(); dst_mask.delete(); contours.delete(); hierarchy.delete();
+  // for (var i=0;i<26;i=i+1){
+  //   var width=individualBerry[i].cols;
+  //   var height= individualBerry[i].rows;
+  //   let Ori_berry=CreatImageData(individualBerry[i],112*width/height,112);
+  //   let brusie_imageData= await processOutput(output_bruise)
+  //   let mat_bruise = cv.matFromImageData(brusie_imageData);
+  //   let Ori_bruise_mask=CreatImageData(mat_bruise,112*width/height,112);
+  //   if(i<6){
+  //     drawImage(Ori_berry,(i-1)*112,0)
+  //     drawImage(Ori_bruise_mask,(i-1)*112,0)
+  //   } else if(i<11){
+  //     drawImage(Ori_berry,(i-6)*112,120)
+  //     drawImage(Ori_bruise_mask,(i-6)*112,0)
+  //   } else if (i<16){
+  //     drawImage(Ori_berry,(i-11)*112,240)
+  //     drawImage(Ori_bruise_mask,(i-11)*112,0)
+  //   } else if (i<21){
+  //     drawImage(Ori_berry,(i-16)*112,360)
+  //     drawImage(Ori_bruise_mask,(i-16)*112,0)
+  //   } else {
+  //     drawImage(Ori_berry,(i-21)*112,480)
+  //     drawImage(Ori_bruise_mask,(i-21)*112,0)
+  //   };
+    
 
-//   // extract orignial size berry
-//   var canvas_orgImg=document.createElement('canvas');
-//   var ctx_orgImg = canvas_orgImg.getContext('2d');
-//   canvas_orgImg.width = originalImage.width;
-//   canvas_orgImg.height = originalImage.height;
-//   ctx_orgImg.drawImage(originalImage, 0, 0 );
-//   let originalImageData = ctx_orgImg.getImageData(0, 0, canvas_orgImg.width, canvas_orgImg.height);
-//   let src_orgImg = cv.matFromImageData(originalImageData);
-//   let dst_orgImg= new cv.Mat();
+  //   // let berry_imageData= await processOutput(output_berry)
+  //   // let mat_berry = cv.matFromImageData(berry_imageData);
+  //   // let Ori_berry_mask=CreatImageData(mat_berry,width,height);
+  //   // drawImage(Ori_berry_mask,width+10,0)
+  //   // // // CreatImage(Ori_berry_mask)
 
-//   for (let j=0;j<Rect.length;j++){
-//     dst_orgImg=src_orgImg.roi(Rect[j]);
-//     individualBerry.push(dst_orgImg);
-//     // cv.imshow('individualBerry', dst_orgImg);
-//   }
-//   document.getElementById('getResult').disabled = false
-// }
+  //   // let brusie_imageData= await processOutput(output_bruise)
+  //   // let mat_bruise = cv.matFromImageData(brusie_imageData);
+  //   // let Ori_bruise_mask=CreatImageData(mat_bruise,width,height);
+  //   // drawImage(Ori_bruise_mask,2*width+2*10,0)
+
+
+  //   // CreatImage(Ori_bruise_mask)
+  // }
+}
+
 
 function CreatImageData(ImageMat,rx,ry){
   var canvas=document.createElement('canvas');
@@ -253,8 +308,8 @@ function CreatImageData(ImageMat,rx,ry){
   return img;
 }
 
-function drawImage(imageData,x,y){
-  var canvas=document.getElementById('result1')
+function drawImage(canvasid,imageData,x,y){
+  var canvas=document.getElementById(canvasid)
   var ctx=canvas.getContext("2d");
   ctx.putImageData(imageData,x,y)
 }
@@ -269,63 +324,6 @@ function drawImage(imageData,x,y){
 // }
 
 
-
-//berry segmentaion for individual berry
-
-// window.segmentBerry = function () {
-var bruise_ratio=[]
-window.segmentBerry = async function () {
-  let bruiseResult_canvas=document.getElementById('bruiseResult');
-  let bruiseResult_ctx=bruiseResult_canvas.getContext('2d');
-  bruiseResult_ctx.font = "20px Times New Roman";
-
-  for (var i=0;i<individualBerry.length;i=i+1){
-    // for (var i=1;i<2;i=i+1){
-    let img=CreatImageData(individualBerry[i],224,224);
-    let inputImage = preprocessInput(img);
-    const output_berry = berrySeg_model.predict(inputImage);
-    count_berry=CountPixel(output_berry);
-    // console.log('count_berry:'+count_berry)
-    const output_bruise = bruiseSeg_model.predict(inputImage)
-    count_bruise=CountPixel(output_bruise);
-    // console.log('count_bruise:'+count_bruise)
-    if(count_bruise==0){
-      ratio=0;
-    } else{
-      ratio=count_bruise/count_berry;
-    };
-    bruise_ratio.push(ratio)
-    // console.log('i='+i+'  ratio:'+ratio)
-    bruiseResult_ctx.fillText('id='+(i)+'  bruiseRatio='+ratio.toFixed(2) , 0, i*25);
-
-    // var width=individualBerry[i].cols;
-    // var height= individualBerry[i].rows;
-
-
-    // let Ori_berry=CreatImageData(individualBerry[i],width,height);
-    // drawImage(Ori_berry,0,0)
-
-    // let berry_imageData= await processOutput(output_berry)
-    // let mat_berry = cv.matFromImageData(berry_imageData);
-    // let Ori_berry_mask=CreatImageData(mat_berry,width,height);
-    // drawImage(Ori_berry_mask,width+10,0)
-    // // // CreatImage(Ori_berry_mask)
-
-    // let brusie_imageData= await processOutput(output_bruise)
-    // let mat_bruise = cv.matFromImageData(brusie_imageData);
-    // let Ori_bruise_mask=CreatImageData(mat_bruise,width,height);
-    // drawImage(Ori_bruise_mask,2*width+2*10,0)
-
-
-    // CreatImage(Ori_bruise_mask)
-  }
-
-
-  
-  
-
-
-}
 
 
 
