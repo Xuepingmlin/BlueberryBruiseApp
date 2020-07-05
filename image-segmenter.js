@@ -9,7 +9,7 @@ const bruiseSegUrl = 'model/bruiseSegmentation/model.json'
 // const bruiseSegUrl ='https://github.com/Xuepingmlin/BlueberryBruiseApp/blob/master/model/bruiseSegmentation/model.json'
 
 
-const colorMapUrl = '/assets/color-map.json'
+const colorMapUrl = 'assets/color-map.json'
 
 //const imageSize = 512
 const imageSize = 224
