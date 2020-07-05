@@ -1,8 +1,8 @@
 /* global tf, Image, FileReader, ImageData, fetch */
 
-const ImageCropUrl = 'model/ImageCrop/model.json'
-const berrySegUrl = 'model/berrySegmentation/model.json'
-const bruiseSegUrl = 'model/bruiseSegmentation/model.json'
+const ImageCropUrl = '/model/ImageCrop/model.json'
+const berrySegUrl = '/model/berrySegmentation/model.json'
+const bruiseSegUrl = '/model/bruiseSegmentation/model.json'
 
 const colorMapUrl = '/assets/color-map.json'
 
