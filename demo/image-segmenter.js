@@ -1,10 +1,13 @@
 /* global tf, Image, FileReader, ImageData, fetch */
 
-const ImageCropUrl = 'model/ImageCrop/model.json'
-const berrySegUrl = 'model/berrySegmentation/model.json'
-const bruiseSegUrl = 'model/bruiseSegmentation/model.json'
+// const ImageCropUrl = 'model/ImageCrop/model.json'
+// const berrySegUrl = 'model/berrySegmentation/model.json'
+// const bruiseSegUrl = 'model/bruiseSegmentation/model.json'
+const ImageCropUrl ='https://github.com/Xuepingmlin/BlueberryBruiseApp/blob/master/model/ImageCrop/model.json'
+const berrySegUrl ='https://github.com/Xuepingmlin/BlueberryBruiseApp/blob/master/model/berrySegmentation/model.json'
+const bruiseSegUrl='https://github.com/Xuepingmlin/BlueberryBruiseApp/blob/master/model/bruiseSegmentation/model.json'
 
-const colorMapUrl = '/assets/color-map.json'
+const colorMapUrl = 'assets/color-map.json'
 
 //const imageSize = 512
 const imageSize = 224
