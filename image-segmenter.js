@@ -186,11 +186,6 @@ window.runModel = async function () {
 // order blueberries
   Rect.sort((a, b) => (a.y > b.y) ? 1 : -1 )
   var meanHeight = Rect.reduce(function(prev, cur) {return prev + cur.height; }, 0)/Rect.length;
-  var minY = Math.min(...Rect.map(item => item.y));
-  var maxY = Math.max(...Rect.map(item => item.y));
-  console.log('meanheight:'+meanHeight)
-  console.log('maxY:'+maxY)
-  console.log('minY:'+minY)
   Rect_1=[];
   Rect_1.push(Rect[0]);
   Rect_2=[];
@@ -254,7 +249,7 @@ window.segmentBerry = async function () {
       ratio=count_bruise/count_berry;
     };
     bruise_ratio.push(ratio)
-    console.log('i='+i+'  ratio:'+ratio)
+    // console.log('i='+i+'  ratio:'+ratio)
     bruiseResult_ctx.fillText('id='+(i+1)+'  bruiseRatio='+ratio.toFixed(2) , 0, i*25+25);
 
     var width=individualBerry[i].cols;
@@ -264,24 +259,28 @@ window.segmentBerry = async function () {
     let mat_bruise = cv.matFromImageData(brusie_imageData);
     let Ori_bruise_mask=CreatImageData(mat_bruise,112*width/height,112);
     if(i<5){
-      drawImage('origin',Ori_berry,(i)*112,0)
-      drawImage('segmentation',Ori_bruise_mask,(i)*112,0)
+      drawImage('origin',Ori_berry,(i)*120,0)
+      drawImage('segmentation',Ori_bruise_mask,(i)*120,0)
     } else if(i<10){
-      drawImage('origin',Ori_berry,(i-5)*112,120)
-      drawImage('segmentation',Ori_bruise_mask,(i-5)*112,120)
+      drawImage('origin',Ori_berry,(i-5)*120,120)
+      drawImage('segmentation',Ori_bruise_mask,(i-5)*120,120)
     } else if (i<15){
-      drawImage('origin',Ori_berry,(i-10)*112,240)
-      drawImage('segmentation',Ori_bruise_mask,(i-10)*112,240)
+      drawImage('origin',Ori_berry,(i-10)*120,240)
+      drawImage('segmentation',Ori_bruise_mask,(i-10)*120,240)
     } else if (i<20){
-      drawImage('origin',Ori_berry,(i-15)*112,360)
-      drawImage('segmentation',Ori_bruise_mask,(i-15)*112,360)
+      drawImage('origin',Ori_berry,(i-15)*120,360)
+      drawImage('segmentation',Ori_bruise_mask,(i-15)*120,360)
     } else if (i<25) {
-      drawImage('origin',Ori_berry,(i-20)*112,480)
-      drawImage('segmentation',Ori_bruise_mask,(i-20)*112,480)
+      drawImage('origin',Ori_berry,(i-20)*120,480)
+      drawImage('segmentation',Ori_bruise_mask,(i-20)*120,480)
+    } else if (i<30) {
+      drawImage('origin',Ori_berry,(i-25)*120,600)
+      drawImage('segmentation',Ori_bruise_mask,(i-25)*120,600)
     } else {
-      drawImage('origin',Ori_berry,(i-25)*112,480)
-      rawImage('segmentation',Ori_bruise_mask,(i-25)*112,480)
+      drawImage('origin',Ori_berry,(i-30)*120,720)
+      drawImage('segmentation',Ori_bruise_mask,(i-30)*120,720)
     };
+
     
   }
   message(`finish segmentation`)
