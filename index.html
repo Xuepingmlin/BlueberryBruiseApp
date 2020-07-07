@@ -17,6 +17,9 @@
         <button id="berrysegment" onclick="segmentBerry();" disabled>get bruise result</button>
         <!-- <button id="bruisesegment" onclick="segmentBruise();" disabled>segment bruise</button> -->
       </div>
+      <p style='margin:0px'>Notes:</p>
+      <p style='margin:0px'>1: It only works on the images with sliced blueberries, so please upload this kind of images.</p>
+      <p style='margin:0px'>2: Please make sure the sliced two-half berries were connected together, otherwise, they would be considered as two berries.</p>
       
       <div style="padding: 10px;">
         <div id="capimg" style="position:relative;display:inline-block;min-width:600px;vertical-align:top;">
@@ -24,9 +27,9 @@
           <!-- <canvas id="canvassegments" style="z-index:2; position:relative; left:120px; top:0px;border:1px solid #000000;"></canvas> -->
           <canvas id="canvascrop" width='112' height='112' style="z-index:1; position:static; left:0px; top:0px;"></canvas>
           <!-- <canvas id="individualBerry" style="z-index:3; position:absolute; left:0px; top:120px;"></canvas> -->
-          <canvas id="bruiseResult" width='231' height='620' style="z-index:1; position: absolute;left:0px; top:120px;"></canvas>
+          <canvas id="bruiseResult" width='231' height='1000' style="z-index:1; position: absolute;left:0px; top:120px;"></canvas>
           <canvas id="origin" width='560' height='800' style="z-index:1; position: absolute;left:250px; top:0px;"></canvas>
-          <canvas id="segmentation" width='560' height='800' style="z-index:2; position: absolute;left:250px; top:0px;"></canvas>
+          <canvas id="segmentation" width='560' height='1000' style="z-index:2; position: absolute;left:250px; top:0px;"></canvas>
           <!-- <canvas id="result2" style="z-index:3; position:absolute; left:0px; top:240px;"></canvas> -->
           <!-- <canvas id="cropBerry" style="z-index:3; position:absolute; left:0px; top:240;"></canvas> -->
         </div>

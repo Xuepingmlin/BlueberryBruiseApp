@@ -139,7 +139,7 @@ window.loadImage = function (input) {
 individualBerry=[];
 window.runModel = async function () {
   if (imageElement) {
-    message('running inference...')
+    message('running cropping...')
     let img = preprocessInput(imageElement)
     // let start = (new Date()).getTime()
     // https://js.tensorflow.org/api/latest/#tf.Model.predict
@@ -147,7 +147,7 @@ window.runModel = async function () {
     // let end = (new Date()).getTime()
     segmentData= await processOutput(output)
     // message(`inference ran in ${(end - start) / 1000} secs`, true)
-    message(`finish inference`)
+    message(`finish cropping`)
     document.getElementById('berrysegment').disabled = false
   } else {
     message('no image available', true)
@@ -167,7 +167,7 @@ window.runModel = async function () {
   for (let i = 0; i < contours.size(); i++) {
     let cnt = contours.get(i);
     let rect = cv.boundingRect(cnt);
-    console.log('rect:'+rect.x+'*'+ rect.y+'*'+rect.width+'*'+rect.height)
+    // console.log('i:'+i+'rect:'+rect.x+'*'+ rect.y+'*'+rect.width+'*'+rect.height)
     let contoursColor = new cv.Scalar(255, 255, 255);
     let rectangleColor = new cv.Scalar(255, 0, 0);
     cv.drawContours(dst_mask, contours, i, contoursColor, 1, cv.LINE_8, hierarchy, 100);
@@ -182,6 +182,34 @@ window.runModel = async function () {
     rect_resize.height=(rect.height+1)/Ratio2;
     Rect.push(rect_resize);
     }
+
+// order blueberries
+  Rect.sort((a, b) => (a.y > b.y) ? 1 : -1 )
+  var meanHeight = Rect.reduce(function(prev, cur) {return prev + cur.height; }, 0)/Rect.length;
+  var minY = Math.min(...Rect.map(item => item.y));
+  var maxY = Math.max(...Rect.map(item => item.y));
+  console.log('meanheight:'+meanHeight)
+  console.log('maxY:'+maxY)
+  console.log('minY:'+minY)
+  Rect_1=[];
+  Rect_1.push(Rect[0]);
+  Rect_2=[];
+  Rect_3=[];
+  for (k=1;k<Rect.length;k++){
+    console.log(Rect[k-1])
+    if((Rect[k].y-Rect[0].y)<(meanHeight/2)){
+      Rect_1.push(Rect[k]);
+    } else if ((Rect[Rect.length-1].y-Rect[k].y)<(meanHeight/2)) {
+      Rect_3.push(Rect[k]);
+    } else {
+      Rect_2.push(Rect[k]);
+    }
+  }
+  Rect_1.sort((a, b) => (a.x> b.x) ? 1 : -1 )
+  Rect_2.sort((a, b) => (a.x > b.x) ? 1 : -1 )
+  Rect_3.sort((a, b) => (a.x > b.x) ? 1 : -1 )   
+  RRect=[].concat(Rect_1,Rect_2,Rect_3)
+
   cv.imshow('canvascrop', dst_mask);
   src_mask.delete(); dst_mask.delete(); contours.delete(); hierarchy.delete();
 
@@ -196,7 +224,7 @@ window.runModel = async function () {
   let dst_orgImg= new cv.Mat();
 
   for (let j=0;j<Rect.length;j++){
-    dst_orgImg=src_orgImg.roi(Rect[j]);
+    dst_orgImg=src_orgImg.roi(RRect[j]);
     individualBerry.push(dst_orgImg);
     // cv.imshow('individualBerry', dst_orgImg);
   }
@@ -204,15 +232,16 @@ window.runModel = async function () {
 }
 
 
-
 //berry segmentaion for individual berry
 var bruise_ratio=[]
 window.segmentBerry = async function () {
+  message(`start segmentation........`)
   let bruiseResult_canvas=document.getElementById('bruiseResult');
   let bruiseResult_ctx=bruiseResult_canvas.getContext('2d');
   bruiseResult_ctx.font = "20px Times New Roman";
+  bruiseResult_ctx.fillText('' ,0, 0);
   // display bruise result
-  for (var i=0;i<individualBerry.length;i=i+1){
+  for (var i=0;i<individualBerry.length;i++){
     let img=CreatImageData(individualBerry[i],224,224);
     let inputImage = preprocessInput(img);
     const output_berry = berrySeg_model.predict(inputImage);
@@ -226,7 +255,7 @@ window.segmentBerry = async function () {
     };
     bruise_ratio.push(ratio)
     console.log('i='+i+'  ratio:'+ratio)
-    bruiseResult_ctx.fillText('id='+(i)+'  bruiseRatio='+ratio.toFixed(2) , 0, i*25);
+    bruiseResult_ctx.fillText('id='+(i+1)+'  bruiseRatio='+ratio.toFixed(2) , 0, i*25+25);
 
     var width=individualBerry[i].cols;
     var height= individualBerry[i].rows;
@@ -234,24 +263,28 @@ window.segmentBerry = async function () {
     let brusie_imageData= await processOutput(output_bruise)
     let mat_bruise = cv.matFromImageData(brusie_imageData);
     let Ori_bruise_mask=CreatImageData(mat_bruise,112*width/height,112);
-    if(i<6){
-      drawImage('origin',Ori_berry,(i-1)*112,0)
-      drawImage('segmentation',Ori_bruise_mask,(i-1)*112,0)
-    } else if(i<11){
-      drawImage('origin',Ori_berry,(i-6)*112,120)
-      drawImage('segmentation',Ori_bruise_mask,(i-6)*112,120)
-    } else if (i<16){
-      drawImage('origin',Ori_berry,(i-11)*112,240)
-      drawImage('segmentation',Ori_bruise_mask,(i-11)*112,240)
-    } else if (i<21){
-      drawImage('origin',Ori_berry,(i-16)*112,360)
-      drawImage('segmentation',Ori_bruise_mask,(i-16)*112,360)
+    if(i<5){
+      drawImage('origin',Ori_berry,(i)*112,0)
+      drawImage('segmentation',Ori_bruise_mask,(i)*112,0)
+    } else if(i<10){
+      drawImage('origin',Ori_berry,(i-5)*112,120)
+      drawImage('segmentation',Ori_bruise_mask,(i-5)*112,120)
+    } else if (i<15){
+      drawImage('origin',Ori_berry,(i-10)*112,240)
+      drawImage('segmentation',Ori_bruise_mask,(i-10)*112,240)
+    } else if (i<20){
+      drawImage('origin',Ori_berry,(i-15)*112,360)
+      drawImage('segmentation',Ori_bruise_mask,(i-15)*112,360)
+    } else if (i<25) {
+      drawImage('origin',Ori_berry,(i-20)*112,480)
+      drawImage('segmentation',Ori_bruise_mask,(i-20)*112,480)
     } else {
-      drawImage('origin',Ori_berry,(i-21)*112,480)
-      drawImage('segmentation',Ori_bruise_mask,(i-21)*112,480)
+      drawImage('origin',Ori_berry,(i-25)*112,480)
+      rawImage('segmentation',Ori_bruise_mask,(i-25)*112,480)
     };
     
   }
+  message(`finish segmentation`)
  
 
   // display segmentation result 
@@ -369,7 +402,7 @@ async function processOutput (output) {
   // console.log('processOutput started')
 
   let segMap = Array.from(output.dataSync())
-  console.log('segMap:'+segMap)
+  // console.log('segMap:'+segMap)
 
   if (!colorMap) {
     await loadColorMap()
@@ -382,7 +415,7 @@ async function processOutput (output) {
   let ctx = canvas.getContext('2d')
   canvas.width = targetSize.w/2
   canvas.height = targetSize.h/2
-  console.log('segMaColor:'+segMapColor)
+  // console.log('segMaColor:'+segMapColor)
   let data = []
   for (var i = 1; i < segMapColor.length; i=i+2) {
     data.push(segMapColor[i][0]) // red
