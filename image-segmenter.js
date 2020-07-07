@@ -73,8 +73,10 @@ window.loadImage = function (input) {
   canvas_3.getContext('2d').clearRect(0,0,canvas_3.width,canvas_3.height);
   let canvas_4 =document.getElementById("origin")
   canvas_4.getContext('2d').clearRect(0,0,canvas_4.width,canvas_4.height);
-  let canvas_5 =document.getElementById("segmentation")
+  let canvas_5 =document.getElementById("berrySegmentation")
   canvas_5.getContext('2d').clearRect(0,0,canvas_5.width,canvas_5.height);
+  let canvas_6 =document.getElementById("bruiseSegmentation")
+  canvas_6.getContext('2d').clearRect(0,0,canvas_6.width,canvas_6.height);
 
   if (input.files && input.files[0]) {
     // console.log('input:'+input.files[0])
@@ -146,7 +148,7 @@ window.runModel = async function () {
     // https://js.tensorflow.org/api/latest/#tf.Model.predict
     const output = ImageCrop_model.predict(img)
     // let end = (new Date()).getTime()
-    segmentData= await processOutput(output)
+    segmentData= await processOutput(output,[128,0,0],175)
     // message(`inference ran in ${(end - start) / 1000} secs`, true)
     // message(`finish cropping`)
     document.getElementById('berrysegment').disabled = false
@@ -188,22 +190,29 @@ window.runModel = async function () {
   Rect.sort((a, b) => (a.y > b.y) ? 1 : -1 )
   var meanHeight = Rect.reduce(function(prev, cur) {return prev + cur.height; }, 0)/Rect.length;
   Rect_1=[];
-  Rect_1.push(Rect[0]);
-  Rect_2=[];
-  Rect_3=[];
+  k_temp=[];
+  RRect=[]
+  k_temp.push(0)
+
   for (k=1;k<Rect.length;k++){
-    if((Rect[k].y-Rect[0].y)<meanHeight){
-      Rect_1.push(Rect[k]);
-    } else if ((Rect[Rect.length-1].y-Rect[k].y)<meanHeight) {
-      Rect_3.push(Rect[k]);
-    } else {
-      Rect_2.push(Rect[k]);
+    if((Rect[k].y-Rect[k-1].y)>meanHeight/2){
+      // console.log('k:'+k)
+      k_temp.push(k);
+    }    
+  }
+  // console.log('k_temp:'+k_temp)
+
+  for (m=0;m<k_temp.length;m++){
+    Rect_1=Rect.slice(k_temp[m],k_temp[m+1])
+    Rect_1.sort((a, b) => (a.x > b.x) ? 1 : -1 )
+    // console.log('Rect_1:'+Rect_1)
+    for (n=0;n<Rect_1.length;n++){
+      // console.log('n:'+n)
+      RRect.push(Rect_1[n])
     }
   }
-  Rect_1.sort((a, b) => (a.x> b.x) ? 1 : -1 )
-  Rect_2.sort((a, b) => (a.x > b.x) ? 1 : -1 )
-  Rect_3.sort((a, b) => (a.x > b.x) ? 1 : -1 )   
-  RRect=[].concat(Rect_1,Rect_2,Rect_3)
+  // console.log('RRect:'+RRect)
+
 
   cv.imshow('canvascrop', dst_mask);
   src_mask.delete(); dst_mask.delete(); contours.delete(); hierarchy.delete();
@@ -218,7 +227,7 @@ window.runModel = async function () {
   let src_orgImg = cv.matFromImageData(originalImageData);
   let dst_orgImg= new cv.Mat();
 
-  for (let j=0;j<Rect.length;j++){
+  for (let j=0;j<RRect.length;j++){
     dst_orgImg=src_orgImg.roi(RRect[j]);
     individualBerry.push(dst_orgImg);
     // cv.imshow('individualBerry', dst_orgImg);
@@ -262,33 +271,41 @@ window.segmentBerry = async function () {
     var height= individualBerry[i].rows;
     temp_ratio=4000/originalImage.height*0.15
     let Ori_berry=CreatImageData(individualBerry[i],width*temp_ratio,height*temp_ratio);
-    let brusie_imageData= await processOutput(output_bruise)
+    let berry_imageData= await processOutput(output_berry,[255,255,255],150)
+    let brusie_imageData= await processOutput(output_bruise,[255,0,0],150)
+    let mat_berry = cv.matFromImageData(berry_imageData);
     let mat_bruise = cv.matFromImageData(brusie_imageData);
+    let Ori_berry_mask=CreatImageData(mat_berry,width*temp_ratio,height*temp_ratio);
     let Ori_bruise_mask=CreatImageData(mat_bruise,width*temp_ratio,height*temp_ratio);
-    if(i<5){
+    if(i<10){
       drawImage('origin',Ori_berry,(i)*120,0)
-      drawImage('segmentation',Ori_bruise_mask,(i)*120,0)
-    } else if(i<10){
-      drawImage('origin',Ori_berry,(i-5)*120,120)
-      drawImage('segmentation',Ori_bruise_mask,(i-5)*120,120)
-    } else if (i<15){
-      drawImage('origin',Ori_berry,(i-10)*120,240)
-      drawImage('segmentation',Ori_bruise_mask,(i-10)*120,240)
-    } else if (i<20){
-      drawImage('origin',Ori_berry,(i-15)*120,360)
-      drawImage('segmentation',Ori_bruise_mask,(i-15)*120,360)
-    } else if (i<25) {
-      drawImage('origin',Ori_berry,(i-20)*120,480)
-      drawImage('segmentation',Ori_bruise_mask,(i-20)*120,480)
-    } else if (i<30) {
-      drawImage('origin',Ori_berry,(i-25)*120,600)
-      drawImage('segmentation',Ori_bruise_mask,(i-25)*120,600)
+      drawImage('berrySegmentation',Ori_berry_mask,(i)*120,0)
+      drawImage('bruiseSegmentation',Ori_bruise_mask,(i)*120,0)
+    } else if(i<20){
+      drawImage('origin',Ori_berry,(i-10)*120,120)
+      drawImage('berrySegmentation',Ori_berry_mask,(i-10)*120,120)
+      drawImage('bruiseSegmentation',Ori_bruise_mask,(i-10)*120,120)
+    } else if (i<30){
+      drawImage('origin',Ori_berry,(i-20)*120,240)
+      drawImage('berrySegmentation',Ori_berry_mask,(i-20)*120,240)
+      drawImage('bruiseSegmentation',Ori_bruise_mask,(i-20)*120,240)
+    } else if (i<40){
+      drawImage('origin',Ori_berry,(i-30)*120,360)
+      drawImage('berrySegmentation',Ori_berry_mask,(i-30)*120,360)
+      drawImage('bruiseSegmentation',Ori_bruise_mask,(i-30)*120,360)
+    } else if (i<50) {
+      drawImage('origin',Ori_berry,(i-40)*120,480)
+      drawImage('berrySegmentation',Ori_berry_mask,(i-40)*120,480)
+      drawImage('bruiseSegmentation',Ori_bruise_mask,(i-40)*120,480)
+    } else if (i<60) {
+      drawImage('origin',Ori_berry,(i-50)*120,600)
+      drawImage('berrySegmentation',Ori_berry_mask,(i-50)*120,600)
+      drawImage('bruiseSegmentation',Ori_bruise_mask,(i-50)*120,600)
     } else {
-      drawImage('origin',Ori_berry,(i-30)*120,720)
-      drawImage('segmentation',Ori_bruise_mask,(i-30)*120,720)
+      drawImage('origin',Ori_berry,(i-60)*120,720)
+      drawImage('berrySegmentation',Ori_berry_mask,(i-60)*120,720)
+      drawImage('bruiseSegmentation',Ori_bruise_mask,(i-60)*120,720)
     };
-
-    
   }
   let end = (new Date()).getTime()
   message(`finish segmentation in ${(end - start) / 1000} secs`, true)
@@ -362,17 +379,27 @@ function CountPixel (output) {
  *
  * @param {Tensor} output - the model output
  */
-async function processOutput (output) {
+async function processOutput (output,color,a) {
   // console.log('processOutput started')
 
   let segMap = Array.from(output.dataSync())
   // console.log('segMap:'+segMap)
-
-  if (!colorMap) {
-    await loadColorMap()
+  segMapColor=[]
+  for(var i=0;i<segMap.length;i++){
+    if (segMap[i]>0.8){
+      segMapColor.push(color)
+    } else {
+      segMapColor.push([0,0,0])
+    }
   }
 
-  let segMapColor = segMap.map(seg => colorMap[(seg>0.8)?1:0])
+
+  // if (!colorMap) {
+  //   await loadColorMap()
+  // }
+  // console.log('colorMap:'+colorMap)
+  // let segMapColor = segMap.map(seg => colorMap[(seg>0.8)?1:0])
+  // console.log('segMapColor:'+segMapColor)
 
   // let canvas = document.getElementById('canvassegments')
   let canvas = document.createElement('canvas')
@@ -385,7 +412,11 @@ async function processOutput (output) {
     data.push(segMapColor[i][0]) // red
     data.push(segMapColor[i][1]) // green
     data.push(segMapColor[i][2]) // blue
-    data.push(175) // alpha
+    data.push(a) // alpha
+    // data.push(color[0]) // red
+    // data.push(color[1]) // green
+    // data.push(color[2]) // blue
+    // data.push(color[3]) // alpha
   }
 
   let imageData = new ImageData(canvas.width, canvas.height)
