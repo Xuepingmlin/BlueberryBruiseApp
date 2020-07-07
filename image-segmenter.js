@@ -192,9 +192,9 @@ window.runModel = async function () {
   Rect_3=[];
   for (k=1;k<Rect.length;k++){
     console.log(Rect[k-1])
-    if((Rect[k].y-Rect[0].y)<(meanHeight/2)){
+    if((Rect[k].y-Rect[0].y)<meanHeight){
       Rect_1.push(Rect[k]);
-    } else if ((Rect[Rect.length-1].y-Rect[k].y)<(meanHeight/2)) {
+    } else if ((Rect[Rect.length-1].y-Rect[k].y)<meanHeight) {
       Rect_3.push(Rect[k]);
     } else {
       Rect_2.push(Rect[k]);
