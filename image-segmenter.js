@@ -77,7 +77,7 @@ window.loadImage = function (input) {
   canvas_5.getContext('2d').clearRect(0,0,canvas_5.width,canvas_5.height);
 
   if (input.files && input.files[0]) {
-    console.log('input:'+input.files[0])
+    // console.log('input:'+input.files[0])
     // disableElements('input:'+input.files )
     message('resizing image...')
 
@@ -137,17 +137,18 @@ window.loadImage = function (input) {
  * run the model and get a prediction
  */
 individualBerry=[];
+var berry_resize_ratio
 window.runModel = async function () {
+  message('running cropping...')
+  let start = (new Date()).getTime()
   if (imageElement) {
-    message('running cropping...')
     let img = preprocessInput(imageElement)
-    // let start = (new Date()).getTime()
     // https://js.tensorflow.org/api/latest/#tf.Model.predict
     const output = ImageCrop_model.predict(img)
     // let end = (new Date()).getTime()
     segmentData= await processOutput(output)
     // message(`inference ran in ${(end - start) / 1000} secs`, true)
-    message(`finish cropping`)
+    // message(`finish cropping`)
     document.getElementById('berrysegment').disabled = false
   } else {
     message('no image available', true)
@@ -183,7 +184,7 @@ window.runModel = async function () {
     Rect.push(rect_resize);
     }
 
-// order blueberries
+  // order blueberries
   Rect.sort((a, b) => (a.y > b.y) ? 1 : -1 )
   var meanHeight = Rect.reduce(function(prev, cur) {return prev + cur.height; }, 0)/Rect.length;
   Rect_1=[];
@@ -191,7 +192,6 @@ window.runModel = async function () {
   Rect_2=[];
   Rect_3=[];
   for (k=1;k<Rect.length;k++){
-    console.log(Rect[k-1])
     if((Rect[k].y-Rect[0].y)<meanHeight){
       Rect_1.push(Rect[k]);
     } else if ((Rect[Rect.length-1].y-Rect[k].y)<meanHeight) {
@@ -223,6 +223,9 @@ window.runModel = async function () {
     individualBerry.push(dst_orgImg);
     // cv.imshow('individualBerry', dst_orgImg);
   }
+  let end = (new Date()).getTime()
+  message(`finish cropping in ${(end - start) / 1000} secs`, true)
+
   // document.getElementById('berrysegment').disabled = false
 }
 
@@ -230,7 +233,9 @@ window.runModel = async function () {
 //berry segmentaion for individual berry
 var bruise_ratio=[]
 window.segmentBerry = async function () {
-  message(`start segmentation........`)
+  message(`start segmentation...`)
+  let start = (new Date()).getTime()
+
   let bruiseResult_canvas=document.getElementById('bruiseResult');
   let bruiseResult_ctx=bruiseResult_canvas.getContext('2d');
   bruiseResult_ctx.font = "20px Times New Roman";
@@ -250,14 +255,16 @@ window.segmentBerry = async function () {
     };
     bruise_ratio.push(ratio)
     // console.log('i='+i+'  ratio:'+ratio)
+
     bruiseResult_ctx.fillText('id='+(i+1)+'  bruiseRatio='+ratio.toFixed(2) , 0, i*25+25);
 
     var width=individualBerry[i].cols;
     var height= individualBerry[i].rows;
-    let Ori_berry=CreatImageData(individualBerry[i],112*width/height,112);
+    temp_ratio=4000/originalImage.height*0.15
+    let Ori_berry=CreatImageData(individualBerry[i],width*temp_ratio,height*temp_ratio);
     let brusie_imageData= await processOutput(output_bruise)
     let mat_bruise = cv.matFromImageData(brusie_imageData);
-    let Ori_bruise_mask=CreatImageData(mat_bruise,112*width/height,112);
+    let Ori_bruise_mask=CreatImageData(mat_bruise,width*temp_ratio,height*temp_ratio);
     if(i<5){
       drawImage('origin',Ori_berry,(i)*120,0)
       drawImage('segmentation',Ori_bruise_mask,(i)*120,0)
@@ -283,50 +290,8 @@ window.segmentBerry = async function () {
 
     
   }
-  message(`finish segmentation`)
- 
-
-  // display segmentation result 
-
-  // for (var i=0;i<26;i=i+1){
-  //   var width=individualBerry[i].cols;
-  //   var height= individualBerry[i].rows;
-  //   let Ori_berry=CreatImageData(individualBerry[i],112*width/height,112);
-  //   let brusie_imageData= await processOutput(output_bruise)
-  //   let mat_bruise = cv.matFromImageData(brusie_imageData);
-  //   let Ori_bruise_mask=CreatImageData(mat_bruise,112*width/height,112);
-  //   if(i<6){
-  //     drawImage(Ori_berry,(i-1)*112,0)
-  //     drawImage(Ori_bruise_mask,(i-1)*112,0)
-  //   } else if(i<11){
-  //     drawImage(Ori_berry,(i-6)*112,120)
-  //     drawImage(Ori_bruise_mask,(i-6)*112,0)
-  //   } else if (i<16){
-  //     drawImage(Ori_berry,(i-11)*112,240)
-  //     drawImage(Ori_bruise_mask,(i-11)*112,0)
-  //   } else if (i<21){
-  //     drawImage(Ori_berry,(i-16)*112,360)
-  //     drawImage(Ori_bruise_mask,(i-16)*112,0)
-  //   } else {
-  //     drawImage(Ori_berry,(i-21)*112,480)
-  //     drawImage(Ori_bruise_mask,(i-21)*112,0)
-  //   };
-    
-
-  //   // let berry_imageData= await processOutput(output_berry)
-  //   // let mat_berry = cv.matFromImageData(berry_imageData);
-  //   // let Ori_berry_mask=CreatImageData(mat_berry,width,height);
-  //   // drawImage(Ori_berry_mask,width+10,0)
-  //   // // // CreatImage(Ori_berry_mask)
-
-  //   // let brusie_imageData= await processOutput(output_bruise)
-  //   // let mat_bruise = cv.matFromImageData(brusie_imageData);
-  //   // let Ori_bruise_mask=CreatImageData(mat_bruise,width,height);
-  //   // drawImage(Ori_bruise_mask,2*width+2*10,0)
-
-
-  //   // CreatImage(Ori_bruise_mask)
-  // }
+  let end = (new Date()).getTime()
+  message(`finish segmentation in ${(end - start) / 1000} secs`, true)
 }
 
 
@@ -478,13 +443,18 @@ function message (msg, highlight) {
   }
 
   const node = document.createElement('div')
+  // node.addEventListener('load', function() {
+  //   console.log('message loaded');
+  // });
   if (mark) {
     node.appendChild(mark)
   } else {
     node.innerText = msg
   }
-
+  
   document.getElementById('message').appendChild(node)
+  // document.getElementById('message')
+
 }
 
 function init () {
