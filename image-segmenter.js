@@ -29,6 +29,7 @@ let output
  */
 window.loadModel = async function () {
   // disableElements()
+  document.getElementById('message1').innerHTML = "";
   message('message1','loading model...')
 
   let start1 = (new Date()).getTime()
@@ -75,6 +76,11 @@ window.loadImage = function (input) {
   let canvas_6 =document.getElementById("bruiseSegmentation")
   canvas_6.getContext('2d').clearRect(0,0,canvas_6.width,canvas_6.height);
   document.getElementById('message2').innerHTML = "";
+  document.getElementById('message3').innerHTML = "";
+  document.getElementById('message4').innerHTML = "";
+  document.getElementById('message5').innerHTML = "";
+  document.getElementById('message6').innerHTML = "";
+  document.getElementById('message7').innerHTML = "";
 
   if (input.files && input.files[0]) {
     // console.log('input:'+input.files[0])
@@ -150,7 +156,7 @@ window.runModel = async function () {
     // https://js.tensorflow.org/api/latest/#tf.Model.predict
     let output = await ImageCrop_model.executeAsync(tf.browser.fromPixels(originalImage).resizeNearestNeighbor([300, 300]).expandDims());
     let score= output[0].arraySync()
-    console.log(score)
+    console.log('score',score)
     let label = output[1].arraySync()
     let bbx = output[3].arraySync() //[ymin xmin ymax xmax]
     var c = document.getElementById("canvasimage");
@@ -159,7 +165,7 @@ window.runModel = async function () {
     ctx.lineWidth = "0.5";
     ctx.strokeStyle = "blue";
     for (let i = 0; i < score[0].length; i++) {
-      if (score[0][i]>0.6) {
+      if (score[0][i]>0.2) {
         // draw boxes
         x0=bbx[0][i][1]*300-2
         y0=bbx[0][i][0]*300-2
@@ -200,7 +206,7 @@ window.runModel = async function () {
       RRect.push(Rect_1[n])
     }
   }
-  console.log('RRct:',RRect)
+  // console.log('RRct:',RRect)
 
   // var canvas_orgImg=document.createElement('canvas');
   // var ctx_orgImg = canvas_orgImg.getContext('2d');
@@ -268,9 +274,22 @@ window.segmentBerry = async function () {
     } else{
       ratio=count_bruise/count_berry;
     };
+    if (i<10){
+      message('message3','id='+(i+1)+': '+(ratio*100).toFixed(2)+'%')
+    } else if(i<20){
+      message('message4','id='+(i+1)+': '+(ratio*100).toFixed(2)+'%')
+    } else if(i<30){
+      message('message5','id='+(i+1)+': '+(ratio*100).toFixed(2)+'%')
+    } else if(i<40){
+      message('message6','id='+(i+1)+': '+(ratio*100).toFixed(2)+'%')
+    } else if(i<50){
+      message('message7','id='+(i+1)+': '+(ratio*100).toFixed(2)+'%')
+    }
+    
+
     bruise_ratio.push(ratio)
     // display bruise ratio
-    ratio_ctx.fillText('id='+(i+1)+'  bruiseRatio='+(ratio*100).toFixed(2)+'%' , 0, i*25+25);
+    // ratio_ctx.fillText('id='+(i+1)+'  bruiseRatio='+(ratio*100).toFixed(2)+'%' , 0, i*25+25);
 
     let berry_imageData= await processOutput(output_berry,[0,255,0,100])
     let bruise_imageData= await processOutput(output_bruise,[255,0,0,255])
