@@ -29,26 +29,26 @@ let output
  */
 window.loadModel = async function () {
   // disableElements()
-  message('loading model...')
+  message('message1','loading model...')
 
   let start1 = (new Date()).getTime()
   // https://js.tensorflow.org/api/1.1.2/#loadGraphModel
   ImageCrop_model = await tf.loadGraphModel(ImageCropUrl)
   let end1 = (new Date()).getTime()
   //message(ImageCrop_model.ImageCropUrl)
-  message(`ImageCrop_model loaded in ${(end1 - start1) / 1000} secs`, true)
+  message('message1',`ImageCrop_model loaded in ${(end1 - start1) / 1000} secs`, true)
 
   let start2 = (new Date()).getTime()
   berrySeg_model = await tf.loadGraphModel(berrySegUrl)
   let end2 = (new Date()).getTime()
   //message(berrySeg_model.berrySegUrl)
-  message(`berrySeg_model loaded in ${(end2 - start2) / 1000} secs`, true)
+  message('message1',`berrySeg_model loaded in ${(end2 - start2) / 1000} secs`, true)
 
   let start3 = (new Date()).getTime()
   bruiseSeg_model = await tf.loadGraphModel(bruiseSegUrl)
   let end3 = (new Date()).getTime()
   //message(bruiseSeg_model.bruiseSegUrl)
-  message(`bruiseSeg_model loaded in ${(end3 - start3) / 1000} secs`, true)
+  message('message1',`bruiseSeg_model loaded in ${(end3 - start3) / 1000} secs`, true)
   document.getElementById('modelimage').disabled = false
   // enableElements()
 }
@@ -74,11 +74,12 @@ window.loadImage = function (input) {
   canvas_5.getContext('2d').clearRect(0,0,canvas_5.width,canvas_5.height);
   let canvas_6 =document.getElementById("bruiseSegmentation")
   canvas_6.getContext('2d').clearRect(0,0,canvas_6.width,canvas_6.height);
+  document.getElementById('message2').innerHTML = "";
 
   if (input.files && input.files[0]) {
     // console.log('input:'+input.files[0])
     // disableElements('input:'+input.files )
-    message('resizing image...')
+    message('message2','resizing image...')
 
     let reader = new FileReader()
 
@@ -123,13 +124,13 @@ window.loadImage = function (input) {
         //   .fillText('resized original image',0,0)
         //   .drawImage(imageElement, 19, 38,targetSize.w/2,targetSize.h/2)
 
-        message(`resized from ${origSize.w} x ${origSize.h} to ${targetSize_0.w} x ${targetSize_0.h}`)
+        message('message2',`resized from ${origSize.w} x ${origSize.h} to ${targetSize_0.w} x ${targetSize_0.h}`)
       }
     }
 
     reader.readAsDataURL(input.files[0])
   } else {
-    message('no image uploaded', true)
+    message('message2','no image uploaded', true)
   }
   document.getElementById('modelrun').disabled = false
 }
@@ -142,7 +143,7 @@ window.loadImage = function (input) {
 individualBerry=[];
 var berry_resize_ratio
 window.runModel = async function () {
-  message('running cropping...')
+  message('message2','running cropping...')
   let start = (new Date()).getTime()
   Rect=[];
   if (imageElement) {
@@ -218,7 +219,7 @@ window.runModel = async function () {
 
  
   let end = (new Date()).getTime()
-  message(`finish cropping in ${(end - start) / 1000} secs`, true)
+  message('message2',`finish cropping in ${(end - start) / 1000} secs`, true)
   document.getElementById('berrysegment').disabled = false
 }
 
@@ -226,7 +227,7 @@ window.runModel = async function () {
 //berry segmentaion for individual berry
 var bruise_ratio=[]
 window.segmentBerry = async function () {
-  message(`start segmentation...`)
+  message('message2',`start segmentation...`)
   let start = (new Date()).getTime()
 
   let ratio_canvas=document.getElementById('bruiseResult');
@@ -430,7 +431,7 @@ window.segmentBerry = async function () {
   //   };
   // }
   let end = (new Date()).getTime()
-  message(`finish segmentation in ${(end - start) / 1000} secs`, true)
+  message('message2',`finish segmentation in ${(end - start) / 1000} secs`, true)
 }
 
 function ResizeImageData(imageData,scale_1,scale_2){
@@ -609,7 +610,7 @@ function enableElements () {
   }
 }
 
-function message (msg, highlight) {
+function message (id,msg, highlight) {
   let mark = null
   if (highlight) {
     mark = document.createElement('mark')
@@ -626,13 +627,13 @@ function message (msg, highlight) {
     node.innerText = msg
   }
   
-  document.getElementById('message').appendChild(node)
+  document.getElementById(id).appendChild(node)
   // document.getElementById('message')
 
 }
 
 function init () {
-  message(`tfjs version: ${tf.version.tfjs}`, true)
+  message('message1', `tfjs version: ${tf.version.tfjs}`, true)
 }
 
 // ready
