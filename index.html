@@ -5,6 +5,7 @@
   <head>
     <meta charset="utf-8">
     <title>image-segmenter</title>
+
   </head>
   <body>
     <div style="margin: 20px;">
@@ -17,29 +18,35 @@
         <button id="berrysegment" onclick="segmentBerry();" disabled>get bruise result</button>
         <!-- <button id="bruisesegment" onclick="segmentBruise();" disabled>segment bruise</button> -->
       </div>
-      <p style='margin:0px'>Notes:</p>
-      <p style='margin:0px'>1: It only works on the images with sliced blueberries, so please upload this kind of images.</p>
-      <p style='margin:0px'>2: Please make sure the sliced two-half berries were connected together, otherwise, they would be considered as two berries.</p>
-      
+      <p style='margin:5px;border:1px solid #000000;'>
+        Notes:<br>
+        1: It only works on the images with sliced blueberries, so please upload this kind of images. And try to seperate different berries.<br>
+        2: Please wait a few seconds after clicking 'get bruise result' botton.
+      </p>
+       
       <div style="padding: 10px;">
         <div id="capimg" style="position:relative;display:inline-block;min-width:600px;vertical-align:top;">
-          <canvas id="canvasimage" width='112' height='112' style="z-index:1; position:static; left:0px; top:0px;"></canvas>
+          <canvas id="canvasimage" width='300' height='300' style="z-index:1; position:absolute; left:0px; top:0px"></canvas>
           <!-- <canvas id="canvassegments" style="z-index:2; position:relative; left:120px; top:0px;border:1px solid #000000;"></canvas> -->
-          <canvas id="canvascrop" width='112' height='112' style="z-index:1; position:static; left:0px; top:0px;"></canvas>
+          <canvas id="canvascrop" width='300' height='300' style="z-index:1; position:absolute; left:300px; top:0px;"></canvas>
           <!-- <canvas id="individualBerry" style="z-index:3; position:absolute; left:0px; top:120px;"></canvas> -->
-          <canvas id="bruiseResult" width='231' height='1500' style="z-index:1; position: absolute;left:0px; top:120px;"></canvas>
-          <canvas id="origin" width='1200' height='1500' style="z-index:1; position: absolute;left:250px; top:0px;"></canvas>
-          <canvas id="berrySegmentation" width='1200' height='1500' style="z-index:2; position: absolute;left:250px; top:0px;"></canvas>
-          <canvas id="bruiseSegmentation" width='1200' height='1500' style="z-index:2; position: absolute;left:250px; top:0px;"></canvas>
+          <canvas id="bruiseResult" width='231' height='1500' style="z-index:1; position: absolute;left:0px; top:310px;"></canvas>
+          <canvas id="origin" width='300' height='300' style="z-index:1; position:absolute; left:320px; top:0px;"></canvas>
+          <canvas id="berrySegmentation" width='300' height='300' style="z-index:1; position:absolute; left:320px; top:0px;"></canvas>
+          <canvas id="bruiseSegmentation" width='300' height='300' style="z-index:1; position:absolute; left:320px; top:0px;"></canvas>
+          <!-- <canvas id="origin" width='1200' height='1500' style="z-index:1; position: absolute;left:310px; top:0px;"></canvas>
+          <canvas id="berrySegmentation" width='1200' height='1500' style="z-index:2; position: absolute;left:310px; top:0px;"></canvas>
+          <canvas id="bruiseSegmentation" width='1200' height='1500' style="z-index:2; position: absolute;left:310px; top:0px;"></canvas> -->
           <!-- <canvas id="result2" style="z-index:3; position:absolute; left:0px; top:240px;"></canvas> -->
           <!-- <canvas id="cropBerry" style="z-index:3; position:absolute; left:0px; top:240;"></canvas> -->
         </div>
-        <div id="message" style="position: absolute;display:inline-block;left:1500px; top:200px;"></div>
+        <div id="message" style="position: absolute;display:inline-block;left:700px; top:200px;"></div>
       </div>
 
       
 
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.7.4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"> </script>
     <script async src="opencv.js" type="text/javascript"></script>
     <script src="image-segmenter.js"></script>
   </body>
