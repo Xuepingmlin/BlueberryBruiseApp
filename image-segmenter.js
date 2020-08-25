@@ -165,7 +165,7 @@ window.runModel = async function () {
     ctx.lineWidth = "0.5";
     ctx.strokeStyle = "blue";
     for (let i = 0; i < score[0].length; i++) {
-      if (score[0][i]>0.2) {
+      if (score[0][i]>0.1) {
         // draw boxes
         x0=bbx[0][i][1]*300-2
         y0=bbx[0][i][0]*300-2
