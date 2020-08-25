@@ -167,10 +167,10 @@ window.runModel = async function () {
     for (let i = 0; i < score[0].length; i++) {
       if (score[0][i]>0.1) {
         // draw boxes
-        x0=bbx[0][i][1]*300-2
-        y0=bbx[0][i][0]*300-2
-        bb_width=(bbx[0][i][3]-bbx[0][i][1])*300+4
-        bb_height=(bbx[0][i][2]-bbx[0][i][0])*300+4
+        x0=bbx[0][i][1]*300-1
+        y0=bbx[0][i][0]*300-1
+        bb_width=(bbx[0][i][3]-bbx[0][i][1])*300+2
+        bb_height=(bbx[0][i][2]-bbx[0][i][0])*300+2
         // console.log(x0,y0, bb_width,  bb_height)
         ctx.rect(x0,y0,bb_width,bb_height);
         ctx.stroke();
