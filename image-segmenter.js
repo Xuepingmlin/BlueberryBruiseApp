@@ -46,7 +46,11 @@ window.loadModel = async function () {
   message('message1',`berrySeg_model loaded in ${(end2 - start2) / 1000} secs`, true)
 
   let start3 = (new Date()).getTime()
-  bruiseSeg_model = await tf.loadGraphModel(bruiseSegUrl)
+  // bruiseSeg_model = await tf.loadGraphModel(bruiseSegUrl)
+  // tf.ENV.set("WEBGL_PACK", false);
+  bruiseSeg_model = await tf.loadLayersModel(bruiseSegUrl)
+  // bruiseSeg_model.getWeights()[0].print()
+
   let end3 = (new Date()).getTime()
   //message(bruiseSeg_model.bruiseSegUrl)
   message('message1',`bruiseSeg_model loaded in ${(end3 - start3) / 1000} secs`, true)
@@ -165,21 +169,21 @@ window.runModel = async function () {
     ctx.lineWidth = "0.5";
     ctx.strokeStyle = "blue";
     for (let i = 0; i < score[0].length; i++) {
-      if (score[0][i]>0.1) {
+      if (score[0][i]>0.2) {
         // draw boxes
-        x0=bbx[0][i][1]*300-1
-        y0=bbx[0][i][0]*300-1
-        bb_width=(bbx[0][i][3]-bbx[0][i][1])*300+2
-        bb_height=(bbx[0][i][2]-bbx[0][i][0])*300+2
+        x0=bbx[0][i][1]*300//-1
+        y0=bbx[0][i][0]*300//-1
+        bb_width=(bbx[0][i][3]-bbx[0][i][1])*300//+2
+        bb_height=(bbx[0][i][2]-bbx[0][i][0])*300//+2
         // console.log(x0,y0, bb_width,  bb_height)
         ctx.rect(x0,y0,bb_width,bb_height);
         ctx.stroke();
         //store individual berries
         let temp=new Object();
-        temp.x=bbx[0][i][1]*originalImage.width-originalImage.width/300*2
-        temp.y=bbx[0][i][0]*originalImage.height-originalImage.height/300*2
-        temp.width=(bbx[0][i][3]-bbx[0][i][1])*originalImage.width+originalImage.width/300*4
-        temp.height=(bbx[0][i][2]-bbx[0][i][0])*originalImage.height+originalImage.height/300*4
+        temp.x=bbx[0][i][1]*originalImage.width//-originalImage.width/300*2
+        temp.y=bbx[0][i][0]*originalImage.height//-originalImage.height/300*2
+        temp.width=(bbx[0][i][3]-bbx[0][i][1])*originalImage.width//+originalImage.width/300*4
+        temp.height=(bbx[0][i][2]-bbx[0][i][0])*originalImage.height//+originalImage.height/300*4
         // console.log('temp:',temp)
         Rect.push(temp)
       }
@@ -266,9 +270,10 @@ window.segmentBerry = async function () {
     // drawImage('canvascrop',img,individualBerry[i].x,individualBerry[i].y)
     let inputImage = tf.browser.fromPixels(img).toFloat().resizeNearestNeighbor([224, 224]).expandDims();
     const output_berry = berrySeg_model.predict(inputImage);
-    count_berry=CountPixel(output_berry);
+    count_berry=CountPixel(output_berry,0.8);
+    console.log()
     const output_bruise = bruiseSeg_model.predict(inputImage)
-    count_bruise=CountPixel(output_bruise);
+    count_bruise=CountPixel(output_bruise,0.05);
     if(count_bruise==0){
       ratio=0;
     } else{
@@ -284,6 +289,8 @@ window.segmentBerry = async function () {
       message('message6','id='+(i+1)+': '+(ratio*100).toFixed(2)+'%')
     } else if(i<50){
       message('message7','id='+(i+1)+': '+(ratio*100).toFixed(2)+'%')
+    } else if(i<60){
+      message('message7','id='+(i+1)+': '+(ratio*100).toFixed(2)+'%')
     }
     
 
@@ -291,8 +298,8 @@ window.segmentBerry = async function () {
     // display bruise ratio
     // ratio_ctx.fillText('id='+(i+1)+'  bruiseRatio='+(ratio*100).toFixed(2)+'%' , 0, i*25+25);
 
-    let berry_imageData= await processOutput(output_berry,[0,255,0,100])
-    let bruise_imageData= await processOutput(output_bruise,[255,0,0,255])
+    let berry_imageData= await processOutput(output_berry,[0,255,0,100],0.8)
+    let bruise_imageData= await processOutput(output_bruise,[255,0,0,255],0.05)
     let mat_berry = cv.matFromImageData(berry_imageData);
     let mat_bruise = cv.matFromImageData(bruise_imageData);
     resize_ratio_1=Math.round(individualBerry[i].width*300/originalImage.width)
@@ -521,34 +528,35 @@ function preprocessInput (imageInput) {
   return preprocessed
 }
 
-function CountPixel (output) {
+function CountPixel (output,threshold) {
   // console.log('processOutput started')
-
   let segMap = Array.from(output.dataSync())
-  // console.log('segMap:'+segMap)
+    // console.log('segMap:'+segMap)
   var count=0;
   for (j=1;j<segMap.length;j=j+2){
-    if(segMap[j]>0.8){
+    if(segMap[j]>threshold){
       count=count+1;
     }
   }
   return count;
+} 
 
-}
+
 
 /**
  * convert model Tensor output to image data for previewing
  *
  * @param {Tensor} output - the model output
  */
-async function processOutput (output,color) {
+async function processOutput (output,color,threshold) {
   // console.log('processOutput started')
 
   let segMap = Array.from(output.dataSync())
+  // console.log('segMap:',segMap)
   // console.log('segMap:'+segMap)
   segMapColor=[]
   for(var i=0;i<segMap.length;i++){
-    if (segMap[i]>0.8){
+    if (segMap[i]>threshold){
       segMapColor.push(color)
     } else {
       segMapColor.push([0,0,0,0])
