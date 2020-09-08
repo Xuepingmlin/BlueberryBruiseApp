@@ -23,6 +23,11 @@ let colorMap
 let output
 // let src
 
+const thr_1=0.1
+const thr_2=0.5
+const thr_3=0.01
+
+
 
 /**
  * load the TensorFlow.js model
@@ -169,7 +174,7 @@ window.runModel = async function () {
     ctx.lineWidth = "0.5";
     ctx.strokeStyle = "blue";
     for (let i = 0; i < score[0].length; i++) {
-      if (score[0][i]>0.2) {
+      if (score[0][i]>thr_1) {
         // draw boxes
         x0=bbx[0][i][1]*300//-1
         y0=bbx[0][i][0]*300//-1
@@ -270,27 +275,56 @@ window.segmentBerry = async function () {
     // drawImage('canvascrop',img,individualBerry[i].x,individualBerry[i].y)
     let inputImage = tf.browser.fromPixels(img).toFloat().resizeNearestNeighbor([224, 224]).expandDims();
     const output_berry = berrySeg_model.predict(inputImage);
-    count_berry=CountPixel(output_berry,0.8);
+    count_berry=CountPixel(output_berry,thr_2);
     console.log()
     const output_bruise = bruiseSeg_model.predict(inputImage)
-    count_bruise=CountPixel(output_bruise,0.05);
+    count_bruise=CountPixel(output_bruise,thr_3);
     if(count_bruise==0){
       ratio=0;
     } else{
       ratio=count_bruise/count_berry;
     };
     if (i<10){
-      message('message3','id='+(i+1)+': '+(ratio*100).toFixed(2)+'%')
+      if (ratio<1 | ratio==1){
+        message('message3','id='+(i+1)+': '+(ratio*100).toFixed(2)+'%')
+      } else {
+        message('message3','id='+(i+1)+':100%')
+      }     
     } else if(i<20){
-      message('message4','id='+(i+1)+': '+(ratio*100).toFixed(2)+'%')
+      if (ratio<1 | ratio==1){
+        message('message4','id='+(i+1)+': '+(ratio*100).toFixed(2)+'%')
+      } else {
+        message('message4','id='+(i+1)+':100%')
+      }  
+      // message('message4','id='+(i+1)+': '+(ratio*100).toFixed(2)+'%')
     } else if(i<30){
-      message('message5','id='+(i+1)+': '+(ratio*100).toFixed(2)+'%')
+      if (ratio<1 | ratio==1){
+        message('message5','id='+(i+1)+': '+(ratio*100).toFixed(2)+'%')
+      } else {
+        message('message5','id='+(i+1)+':100%')
+      }  
+      // message('message5','id='+(i+1)+': '+(ratio*100).toFixed(2)+'%')
     } else if(i<40){
-      message('message6','id='+(i+1)+': '+(ratio*100).toFixed(2)+'%')
+      if (ratio<1 | ratio==1){
+        message('message6','id='+(i+1)+': '+(ratio*100).toFixed(2)+'%')
+      } else {
+        message('message6','id='+(i+1)+':100%')
+      }  
+      // message('message6','id='+(i+1)+': '+(ratio*100).toFixed(2)+'%')
     } else if(i<50){
-      message('message7','id='+(i+1)+': '+(ratio*100).toFixed(2)+'%')
+      if (ratio<1 | ratio==1){
+        message('message7','id='+(i+1)+': '+(ratio*100).toFixed(2)+'%')
+      } else {
+        message('message7','id='+(i+1)+':100%')
+      }  
+      // message('message7','id='+(i+1)+': '+(ratio*100).toFixed(2)+'%')
     } else if(i<60){
-      message('message7','id='+(i+1)+': '+(ratio*100).toFixed(2)+'%')
+      if (ratio<1 | ratio==1){
+        message('message8','id='+(i+1)+': '+(ratio*100).toFixed(2)+'%')
+      } else {
+        message('message8','id='+(i+1)+':100%')
+      }  
+      // message('message7','id='+(i+1)+': '+(ratio*100).toFixed(2)+'%')
     }
     
 
@@ -298,8 +332,8 @@ window.segmentBerry = async function () {
     // display bruise ratio
     // ratio_ctx.fillText('id='+(i+1)+'  bruiseRatio='+(ratio*100).toFixed(2)+'%' , 0, i*25+25);
 
-    let berry_imageData= await processOutput(output_berry,[0,255,0,100],0.8)
-    let bruise_imageData= await processOutput(output_bruise,[255,0,0,255],0.05)
+    let berry_imageData= await processOutput(output_berry,[0,255,0,100],thr_2)
+    let bruise_imageData= await processOutput(output_bruise,[255,0,0,255],thr_3)
     let mat_berry = cv.matFromImageData(berry_imageData);
     let mat_bruise = cv.matFromImageData(bruise_imageData);
     resize_ratio_1=Math.round(individualBerry[i].width*300/originalImage.width)
