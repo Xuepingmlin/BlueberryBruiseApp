@@ -23,9 +23,9 @@ let colorMap
 let output
 // let src
 
-const thr_1=0.1
+const thr_1=0.2
 const thr_2=0.5
-const thr_3=0.01
+const thr_3=0.1
 
 
 
@@ -51,9 +51,9 @@ window.loadModel = async function () {
   message('message1',`berrySeg_model loaded in ${(end2 - start2) / 1000} secs`, true)
 
   let start3 = (new Date()).getTime()
-  // bruiseSeg_model = await tf.loadGraphModel(bruiseSegUrl)
+  bruiseSeg_model = await tf.loadGraphModel(bruiseSegUrl)
   // tf.ENV.set("WEBGL_PACK", false);
-  bruiseSeg_model = await tf.loadLayersModel(bruiseSegUrl)
+  // bruiseSeg_model = await tf.loadLayersModel(bruiseSegUrl)
   // bruiseSeg_model.getWeights()[0].print()
 
   let end3 = (new Date()).getTime()
