@@ -24,8 +24,8 @@ let output
 // let src
 
 const thr_1=0.2
-const thr_2=0.5
-const thr_3=0.1
+const thr_2=0.2
+const thr_3=0.2
 
 
 
@@ -90,6 +90,7 @@ window.loadImage = function (input) {
   document.getElementById('message5').innerHTML = "";
   document.getElementById('message6').innerHTML = "";
   document.getElementById('message7').innerHTML = "";
+  document.getElementById('message8').innerHTML = "";
 
   if (input.files && input.files[0]) {
     // console.log('input:'+input.files[0])
@@ -164,10 +165,10 @@ window.runModel = async function () {
   if (imageElement) {
     // https://js.tensorflow.org/api/latest/#tf.Model.predict
     let output = await ImageCrop_model.executeAsync(tf.browser.fromPixels(originalImage).resizeNearestNeighbor([300, 300]).expandDims());
-    let score= output[0].arraySync()
+    let score= output[1].arraySync()
     console.log('score',score)
-    let label = output[1].arraySync()
-    let bbx = output[3].arraySync() //[ymin xmin ymax xmax]
+    let label = output[2].arraySync()
+    let bbx = output[0].arraySync() //[ymin xmin ymax xmax]
     var c = document.getElementById("canvasimage");
     var ctx = c.getContext("2d");
     ctx.beginPath();
