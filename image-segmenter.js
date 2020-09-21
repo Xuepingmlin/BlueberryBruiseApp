@@ -23,7 +23,7 @@ let colorMap
 let output
 // let src
 
-const thr_1=0.2
+const thr_1=0.5
 const thr_2=0.2
 const thr_3=0.2
 
