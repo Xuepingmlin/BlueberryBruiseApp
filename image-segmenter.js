@@ -19,7 +19,7 @@ let output
 // threshold
 const thr_1=0.5
 const thr_2=0.2
-const thr_3=0.05
+const thr_3=0.2
 
 
 
@@ -42,8 +42,8 @@ window.loadModel = async function () {
   message('message1',`berrySeg_model loaded in ${(end2 - start2) / 1000} secs`, true)
 
   let start3 = (new Date()).getTime()
-  bruiseSeg_model = await tf.loadGraphModel(bruiseSegUrl)
-  // bruiseSeg_model = await tf.loadLayersModel(bruiseSegUrl)
+  // bruiseSeg_model = await tf.loadGraphModel(bruiseSegUrl)
+  bruiseSeg_model = await tf.loadLayersModel(bruiseSegUrl)
   // bruiseSeg_model.getWeights()[0].print()
 
   let end3 = (new Date()).getTime()
@@ -273,7 +273,7 @@ window.segmentBerry = async function () {
     }
     
 
-    bruise_ratio.push(ratio)
+    bruise_ratio.push(Math.floor(ratio*100))
     let berry_imageData= await processOutput(output_berry,[0,255,0,100],thr_2)
     let bruise_imageData= await processOutput(output_bruise,[255,0,0,255],thr_3)
     let mat_berry = cv.matFromImageData(berry_imageData);
@@ -292,8 +292,25 @@ window.segmentBerry = async function () {
   }
   let end = (new Date()).getTime()
   message('message2',`finish segmentation in ${(end - start) / 1000} secs`, true)
+  document.getElementById('download').disabled = false
 }
 
+function downloadFile() {
+  var obj = bruise_ratio;
+  var filename = "download.json";
+  var blob = new Blob([JSON.stringify(obj)], {type: 'text/plain'});
+  if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+      window.navigator.msSaveOrOpenBlob(blob, filename);
+  } else{
+      var e = document.createEvent('MouseEvents'),
+      a = document.createElement('a');
+      a.download = filename;
+      a.href = window.URL.createObjectURL(blob);
+      a.dataset.downloadurl = ['text/plain', a.download, a.href].join(':');
+      e.initEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+      a.dispatchEvent(e);
+  }
+}
 
 function CreatImageData(ImageMat,rx,ry){
   var canvas=document.createElement('canvas');
