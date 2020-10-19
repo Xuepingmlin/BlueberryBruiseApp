@@ -19,7 +19,7 @@ let output
 // threshold
 const thr_1=0.5
 const thr_2=0.2
-const thr_3=0.2
+const thr_3=0.05
 
 
 
@@ -37,6 +37,7 @@ window.loadModel = async function () {
 
   let start2 = (new Date()).getTime()
   berrySeg_model = await tf.loadGraphModel(berrySegUrl)
+  // berrySeg_model.getWeights()[0].print()
   let end2 = (new Date()).getTime()
   message('message1',`berrySeg_model loaded in ${(end2 - start2) / 1000} secs`, true)
 
@@ -342,6 +343,7 @@ function CountPixel (output,threshold) {
  */
 async function processOutput (output,color,threshold) {
   let segMap = Array.from(output.dataSync())
+  // console.log('segMap',segMap)
   segMapColor=[]
   for(var i=0;i<segMap.length;i++){
     if (segMap[i]>threshold){
