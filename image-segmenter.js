@@ -42,10 +42,10 @@ window.loadModel = async function () {
   message('message1',`berrySeg_model loaded in ${(end2 - start2) / 1000} secs`, true)
 
   let start3 = (new Date()).getTime()
-  // bruiseSeg_model = await tf.loadGraphModel(bruiseSegUrl)
-  bruiseSeg_model = await tf.loadLayersModel(bruiseSegUrl)
-  bruiseSeg_model.getWeights()[0].print()
-  bruiseSeg_model.summary()
+  bruiseSeg_model = await tf.loadGraphModel(bruiseSegUrl)
+  // bruiseSeg_model = await tf.loadLayersModel(bruiseSegUrl)
+  // bruiseSeg_model.getWeights()[0].print()
+  // bruiseSeg_model.summary()
 
   let end3 = (new Date()).getTime()
   message('message1',`bruiseSeg_model loaded in ${(end3 - start3) / 1000} secs`, true)
