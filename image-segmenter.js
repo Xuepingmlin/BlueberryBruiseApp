@@ -37,13 +37,15 @@ window.loadModel = async function () {
 
   let start2 = (new Date()).getTime()
   berrySeg_model = await tf.loadGraphModel(berrySegUrl)
+  // berrySeg_model.getWeights()[0].print()
   let end2 = (new Date()).getTime()
   message('message1',`berrySeg_model loaded in ${(end2 - start2) / 1000} secs`, true)
 
   let start3 = (new Date()).getTime()
-  bruiseSeg_model = await tf.loadGraphModel(bruiseSegUrl)
-  // bruiseSeg_model = await tf.loadLayersModel(bruiseSegUrl)
-  // bruiseSeg_model.getWeights()[0].print()
+  // bruiseSeg_model = await tf.loadGraphModel(bruiseSegUrl)
+  bruiseSeg_model = await tf.loadLayersModel(bruiseSegUrl)
+  bruiseSeg_model.getWeights()[0].print()
+  bruiseSeg_model.summary()
 
   let end3 = (new Date()).getTime()
   message('message1',`bruiseSeg_model loaded in ${(end3 - start3) / 1000} secs`, true)
@@ -223,7 +225,8 @@ window.segmentBerry = async function () {
     canvas.height=originalImage.height;
     ctx.drawImage(originalImage,0,0,canvas.width,canvas.height)
     let img=ctx.getImageData(individualBerry[i].x,individualBerry[i].y,individualBerry[i].width,individualBerry[i].height);
-    let inputImage = tf.browser.fromPixels(img).toFloat().resizeNearestNeighbor([224, 224]).expandDims();
+    // let inputImage = tf.browser.fromPixels(img).toFloat().resizeNearestNeighbor([224, 224]).expandDims();
+    let inputImage = tf.browser.fromPixels(img).resizeBilinear([224, 224]).toFloat().expandDims();
     const output_berry = berrySeg_model.predict(inputImage);
     count_berry=CountPixel(output_berry,thr_2);
     const output_bruise = bruiseSeg_model.predict(inputImage)
@@ -272,7 +275,7 @@ window.segmentBerry = async function () {
     }
     
 
-    bruise_ratio.push(ratio)
+    bruise_ratio.push(Math.floor(ratio*100))
     let berry_imageData= await processOutput(output_berry,[0,255,0,100],thr_2)
     let bruise_imageData= await processOutput(output_bruise,[255,0,0,255],thr_3)
     let mat_berry = cv.matFromImageData(berry_imageData);
@@ -291,8 +294,25 @@ window.segmentBerry = async function () {
   }
   let end = (new Date()).getTime()
   message('message2',`finish segmentation in ${(end - start) / 1000} secs`, true)
+  document.getElementById('download').disabled = false
 }
 
+function downloadFile() {
+  var obj = bruise_ratio;
+  var filename = "download.json";
+  var blob = new Blob([JSON.stringify(obj)], {type: 'text/plain'});
+  if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+      window.navigator.msSaveOrOpenBlob(blob, filename);
+  } else{
+      var e = document.createEvent('MouseEvents'),
+      a = document.createElement('a');
+      a.download = filename;
+      a.href = window.URL.createObjectURL(blob);
+      a.dataset.downloadurl = ['text/plain', a.download, a.href].join(':');
+      e.initEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+      a.dispatchEvent(e);
+  }
+}
 
 function CreatImageData(ImageMat,rx,ry){
   var canvas=document.createElement('canvas');
@@ -342,6 +362,7 @@ function CountPixel (output,threshold) {
  */
 async function processOutput (output,color,threshold) {
   let segMap = Array.from(output.dataSync())
+  console.log('segMap',segMap)
   segMapColor=[]
   for(var i=0;i<segMap.length;i++){
     if (segMap[i]>threshold){
